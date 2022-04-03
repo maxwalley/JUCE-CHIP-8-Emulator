@@ -7,7 +7,7 @@
 */
 
 #include <JuceHeader.h>
-#include "Chip8Emulator.h"
+#include "EmulatorController.h"
 
 //==============================================================================
 class Chip8_EmulatorApplication  : public juce::JUCEApplication
@@ -68,14 +68,12 @@ public:
                               DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
-            setContentOwned (new Chip8Emulator(), true);
+            setContentOwned (new EmulatorController(), true);
 
-           #if JUCE_IOS || JUCE_ANDROID
-            setFullScreen (true);
-           #else
             setResizable (true, true);
             centreWithSize (getWidth(), getHeight());
-           #endif
+           
+            setResizeLimits(384, 398, 4096, 2748);
 
             setVisible (true);
         }

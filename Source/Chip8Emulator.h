@@ -23,9 +23,13 @@ public:
     
     void load(std::istream& programData);
     
+    void setRefreshRate(int newRefreshRateHz);
+    
+    void setPlayState(bool play);
+    bool getIsPlaying() const {return isPlaying;}
+    
 private:
     void paint(juce::Graphics& g) override;
-    void resized() override;
     
     void timerCallback() override;
     
@@ -48,8 +52,6 @@ private:
     void clearScreen();
     
     std::array<std::pair<uint8_t, int>, 16> getDefaultKeyPairings() const;
-    
-    void initRefreshRateSlider();
     
     uint16_t currentOpcode;
     std::array<uint8_t, 4096> memory;
@@ -75,5 +77,6 @@ private:
     
     std::array<std::pair<uint8_t, int>, 16> keyPairings;
     
-    juce::Slider refreshRateSlider;
+    int refreshRate = 60;
+    bool isPlaying = false;
 };

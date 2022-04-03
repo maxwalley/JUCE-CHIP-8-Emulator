@@ -10,26 +10,9 @@
 
 #include "Chip8Emulator.h"
 
-#include <fstream>
-
 Chip8Emulator::Chip8Emulator()  : display(juce::Image::RGB, numWidthPixels, numHeightPixels, true)
 {
     keyPairings = getDefaultKeyPairings();
-    
-    std::ifstream t("/Users/maxwalley/Documents/Personal_Projects/Chip8_Emulator/Tests/Pong (1 player).ch8");
-    
-    if(!t.is_open())
-    {
-        std::cout << "Init Failed" << std::endl;
-    }
-    else
-    {
-        load(t);
-    }
-    
-    initRefreshRateSlider();
-    
-    setSize(1024, 562);
 }
 
 Chip8Emulator::~Chip8Emulator()
@@ -64,18 +47,26 @@ void Chip8Emulator::load(std::istream& programData)
     clearScreen();
 }
 
-void Chip8Emulator::paint(juce::Graphics& g)
+void Chip8Emulator::setRefreshRate(int newRefreshRateHz)
 {
-    g.drawImage(display, getLocalBounds().removeFromTop(getHeight() - 50).toFloat());
+    refreshRate = newRefreshRateHz;
     
-    g.setColour(juce::Colours::white);
-    g.setFont(juce::Font(16));
-    g.drawText("Refresh Rate", 0, getHeight() - 40, 100, 30, juce::Justification::centredRight);
+    if(isPlaying)
+    {
+        startTimerHz(refreshRate);
+    }
 }
 
-void Chip8Emulator::resized()
+void Chip8Emulator::setPlayState(bool play)
 {
-    refreshRateSlider.setBounds(100, getHeight() - 40, getWidth() - 100, 30);
+    isPlaying = play;
+    
+    isPlaying ? startTimerHz(refreshRate) : stopTimer();
+}
+
+void Chip8Emulator::paint(juce::Graphics& g)
+{
+    g.drawImage(display, getLocalBounds().toFloat());
 }
 
 void Chip8Emulator::timerCallback()
@@ -563,7 +554,7 @@ void Chip8Emulator::decodeAndExecuteOpcode()
                 {
                     uint16_t currentLocation = indexRegister;
                     
-                    std::for_each(vRegisters.cbegin(), vRegisters.cbegin() + registerIndex, [&currentLocation, this](uint8_t registerValue)
+                    std::for_each(vRegisters.cbegin(), vRegisters.cbegin() + registerIndex + 1, [&currentLocation, this](uint8_t registerValue)
                     {
                         memory[currentLocation++] = registerValue;
                     });
@@ -576,7 +567,7 @@ void Chip8Emulator::decodeAndExecuteOpcode()
                 {
                     uint16_t currentLocation = indexRegister;
                     
-                    std::for_each(vRegisters.begin(), vRegisters.begin() + registerIndex, [&currentLocation, this](uint8_t& registerValue)
+                    std::for_each(vRegisters.begin(), vRegisters.begin() + registerIndex + 1, [&currentLocation, this](uint8_t& registerValue)
                     {
                         registerValue = memory[currentLocation++];
                     });
@@ -689,21 +680,4 @@ std::array<std::pair<uint8_t, int>, 16> Chip8Emulator::getDefaultKeyPairings() c
         std::make_pair(0x0E, 70),
         std::make_pair(0x0F, 86)
     };
-}
-
-void Chip8Emulator::initRefreshRateSlider()
-{
-    refreshRateSlider.setSliderStyle(juce::Slider::LinearHorizontal);
-    refreshRateSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 100, 30);
-    refreshRateSlider.textFromValueFunction = [](double value)
-    {
-        return juce::String(int(value)) + "Hz";
-    };
-    refreshRateSlider.setRange(60.0, 1000.0);
-    refreshRateSlider.onValueChange = [this]()
-    {
-        startTimerHz(refreshRateSlider.getValue());
-    };
-    refreshRateSlider.setValue(300);
-    addAndMakeVisible(refreshRateSlider);
 }
