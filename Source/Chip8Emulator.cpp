@@ -13,6 +13,9 @@
 Chip8Emulator::Chip8Emulator()  : display(juce::Image::RGB, numWidthPixels, numHeightPixels, true)
 {
     keyPairings = getDefaultKeyPairings();
+    
+    audioPlaying = false;
+    audioGenerator.setFreq(2000.0);
 }
 
 Chip8Emulator::~Chip8Emulator()
@@ -90,6 +93,43 @@ bool Chip8Emulator::keyPressed(const juce::KeyPress& key, juce::Component* origi
     }
     
     return false;
+}
+
+void Chip8Emulator::audioDeviceIOCallback(const float** inputChannelData, int numInputChannels, float** outputChannelData, int numOutputChannels, int numSamples)
+{
+    if(!audioPlaying)
+    {
+        //Zero all output audio
+        for(int channel = 0; channel < numOutputChannels; ++channel)
+        {
+            for(int sample = 0; sample < numSamples; ++sample)
+            {
+                outputChannelData[channel][sample] = 0.0f;
+            }
+        }
+        
+        return;
+    }
+    
+    for(int sample = 0; sample < numSamples; ++sample)
+    {
+        const double sampleToPlay = audioGenerator.getNextSample();
+        
+        for(int channel = 0; channel < numOutputChannels; ++channel)
+        {
+            outputChannelData[channel][sample] = sampleToPlay;
+        }
+    }
+}
+
+void Chip8Emulator::audioDeviceAboutToStart(juce::AudioIODevice* device)
+{
+    audioGenerator.setSampleRate(device->getCurrentSampleRate());
+}
+
+void Chip8Emulator::audioDeviceStopped()
+{
+    
 }
 
 void Chip8Emulator::runCycle()
@@ -609,8 +649,12 @@ void Chip8Emulator::updateTimers()
     
     if(soundTimer != 0)
     {
-        std::cout << "Beep!" << std::endl;
+        audioPlaying = true;
         --soundTimer;
+    }
+    else
+    {
+        audioPlaying = false;
     }
 }
 

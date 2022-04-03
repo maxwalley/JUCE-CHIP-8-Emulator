@@ -31,4 +31,6 @@ private:
     juce::TextButton startStopButton;
     Chip8Emulator emulator;
     juce::Slider refreshRateSlider;
+    
+    juce::AudioDeviceManager devManager;
 };

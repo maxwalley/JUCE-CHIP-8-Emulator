@@ -12,10 +12,12 @@
 
 #include <JuceHeader.h>
 #include <random>
+#include "SineWaveGenerator.h"
 
 class Chip8Emulator  : public juce::Component,
                        public juce::Timer,
-                       public juce::KeyListener
+                       public juce::KeyListener,
+                       public juce::AudioIODeviceCallback
 {
 public:
     Chip8Emulator();
@@ -34,6 +36,11 @@ private:
     void timerCallback() override;
     
     bool keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent) override;
+    
+    void audioDeviceIOCallback(const float** inputChannelData, int numInputChannels, float** outputChannelData, int numOutputChannels, int numSamples) override;
+
+    void audioDeviceAboutToStart(juce::AudioIODevice* device) override;
+    void audioDeviceStopped() override;
     
     void runCycle();
     
@@ -79,4 +86,7 @@ private:
     
     int refreshRate = 60;
     bool isPlaying = false;
+    
+    SineWaveGenerator audioGenerator;
+    std::atomic<bool> audioPlaying;
 };

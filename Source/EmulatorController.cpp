@@ -18,6 +18,9 @@ EmulatorController::EmulatorController()
     initStartButton();
     initLoadButton();
     
+    devManager.initialiseWithDefaultDevices(0, 1);
+    devManager.addAudioCallback(&emulator);
+    
     setSize(1024, 662);
 }
 
